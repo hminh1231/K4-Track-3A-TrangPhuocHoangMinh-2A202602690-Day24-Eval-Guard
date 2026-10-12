@@ -4,7 +4,7 @@ Nhóm: TrangPhuocHoangMinh (làm cá nhân)
 
 Người phụ trách: Trang Phước Hoàng Minh — 2A202602690
 
-Nguồn: `artifacts/ragas_50q.json`; run timestamp: 2026-10-12T15:33:27Z.
+Nguồn: `artifacts/ragas_50q.json`; run timestamp: 2026-10-12T15:39:22Z.
 Generation mode/fallback và điều kiện chạy: cả 50 answers có `generation_mode = llm`, không có
 extractive fallback. Pipeline m1–m5 từ Day 18: hierarchical chunking (child 256 ký tự), enrichment
 gpt-4o-mini (contextual prepend), BM25 + BGE-M3 dense trên Qdrant v1.9.7, RRF, rerank
@@ -18,11 +18,11 @@ Models generation/evaluator: generation `gpt-4o-mini-2024-07-18`; evaluator từ
 
 | Metric | factual (20) | multi_hop (20) | adversarial (10) |
 |---|---|---|---|
-| faithfulness | 0.923 | 0.511 | 0.700 |
-| answer_relevancy | 0.534 | 0.391 | 0.389 |
-| context_precision | 0.942 | 0.925 | 0.908 |
+| faithfulness | 0.923 | 0.465 | 0.700 |
+| answer_relevancy | 0.521 | 0.392 | 0.385 |
+| context_precision | 0.967 | 0.925 | 0.892 |
 | context_recall | 0.900 | 0.796 | 0.717 |
-| avg_score | 0.825 | 0.656 | 0.678 |
+| avg_score | 0.828 | 0.644 | 0.673 |
 
 Retrieval (precision/recall) tốt hơn generation ở cả ba nhóm. Điểm thấp tập trung ở
 faithfulness và answer_relevancy — tức là bước sinh câu trả lời, không phải bước tìm kiếm.
@@ -41,16 +41,16 @@ RAGAS cho faithfulness = 0, nhưng đó không phải hallucination).
 | 3 | 44 | adversarial | 0.375 | faithfulness | Over-refusal (như trên) | Như trên |
 | 4 | 42 | adversarial | 0.417 | faithfulness | Over-refusal (như trên) | Như trên |
 | 5 | 50 | adversarial | 0.417 | faithfulness | Over-refusal (như trên) | Như trên |
-| 6 | 7 | factual | 0.419 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 7 | 25 | multi_hop | 0.458 | faithfulness | Over-refusal (như trên) | Như trên |
-| 8 | 21 | multi_hop | 0.458 | answer_relevancy | Answer doesn't match question | Improve prompt template |
-| 9 | 31 | multi_hop | 0.539 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
-| 10 | 30 | multi_hop | 0.563 | answer_relevancy | Answer doesn't match question | Improve prompt template |
+| 6 | 25 | multi_hop | 0.458 | faithfulness | Over-refusal (như trên) | Như trên |
+| 7 | 21 | multi_hop | 0.458 | answer_relevancy | Answer doesn't match question | Improve prompt template |
+| 8 | 7 | factual | 0.461 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
+| 9 | 30 | multi_hop | 0.500 | answer_relevancy | Answer doesn't match question | Improve prompt template |
+| 10 | 31 | multi_hop | 0.539 | faithfulness | LLM hallucinating | Tighten system prompt, lower temperature |
 
 Câu hỏi tương ứng: 39 so sánh mật khẩu v1.0/v2.0; 33 phụ cấp + phép của Manager 12 năm;
-44 chu kỳ đổi mật khẩu; 42 mốc thâm niên cộng phép; 50 VPN cá nhân khi WFH; 7 ai duyệt nghỉ không
-lương 20 ngày; 25 lương thử việc Junior cao nhất; 21 phép + lương Senior 9 năm; 31 trần tiền khách
-sạn công tác trong nước; 30 so sánh bảo hiểm thử việc/chính thức.
+44 chu kỳ đổi mật khẩu; 42 mốc thâm niên cộng phép; 50 VPN cá nhân khi WFH; 25 lương thử việc
+Junior cao nhất; 21 phép + lương Senior 9 năm; 7 ai duyệt nghỉ không lương 20 ngày; 30 so sánh bảo
+hiểm thử việc/chính thức; 31 trần tiền khách sạn công tác trong nước.
 
 Đối chiếu answer/contexts/reference cho thấy bốn nhóm lỗi:
 
@@ -82,18 +82,18 @@ không phải số lỗi):
 
 | worst_metric | factual | multi_hop | adversarial |
 |---|---|---|---|
-| faithfulness | 2 | 9 | 3 |
-| answer_relevancy | 15 | 11 | 5 |
-| context_precision | 1 | 0 | 1 |
+| faithfulness | 2 | 10 | 3 |
+| answer_relevancy | 16 | 10 | 5 |
+| context_precision | 0 | 0 | 1 |
 | context_recall | 2 | 0 | 1 |
 
-Nhóm yếu theo mean thấp nhất: multi_hop; mean: 0.656 (adversarial 0.678, factual 0.825).
+Nhóm yếu theo mean thấp nhất: multi_hop; mean: 0.644 (adversarial 0.673, factual 0.828).
 Worst metric xuất hiện nhiều nhất: answer_relevancy; số câu: 31.
 
 multi_hop yếu vì cần ghép dữ kiện từ 2 tài liệu (phép + lương, phụ cấp + phép, thử việc + bảo hiểm)
 hoặc tính toán, trong khi pipeline chỉ đưa 3 child chunks 256 ký tự vào prompt. Faithfulness của
-multi_hop chỉ 0.511 (9/20 câu có worst = faithfulness) vì answer hoặc từ chối hoặc tự tính toán
-ngoài context. answer_relevancy thấp ở cả factual (0.534) chủ yếu do answer rất ngắn hoặc lặp lại
+multi_hop chỉ 0.465 (10/20 câu có worst = faithfulness) vì answer hoặc từ chối hoặc tự tính toán
+ngoài context. answer_relevancy thấp ở cả factual (0.521) chủ yếu do answer rất ngắn hoặc lặp lại
 chính sách mà không nhắc lại đối tượng câu hỏi — metric này sinh câu hỏi ngược từ answer rồi so
 embedding, nên answer cụt bị điểm thấp dù đúng; vì vậy nó là worst_metric phổ biến nhất nhưng không
 phải lỗi nghiêm trọng nhất.
@@ -106,12 +106,12 @@ phải lỗi nghiêm trọng nhất.
   tiên phiên bản hiện hành khi context có cả bản cũ và mới → kỳ vọng giảm 7 câu từ chối.
 - Bỏ dòng mô tả do m5 chèn khỏi text đưa cho LLM (chỉ dùng để embed) → giảm nhiễu cho evaluator.
 - Kiểm chứng: chạy lại `python scripts/setup_answers.py --live` rồi
-  `python scripts/run_experiments.py --phase a --live`, so sánh mean multi_hop (mốc 0.656), số câu
-  "Không tìm thấy" (mốc 7) và faithfulness multi_hop (mốc 0.511) trên cùng test set.
+  `python scripts/run_experiments.py --phase a --live`, so sánh mean multi_hop (mốc 0.644), số câu
+  "Không tìm thấy" (mốc 7) và faithfulness multi_hop (mốc 0.465) trên cùng test set.
 
 ## Bẫy adversarial và giới hạn
 
-adversarial mean 0.678 < factual 0.825 (điều kiện bonus), nhưng cao hơn multi_hop 0.656. Đọc từng
+adversarial mean 0.673 < factual 0.828 (điều kiện bonus), nhưng cao hơn multi_hop 0.644. Đọc từng
 câu adversarial cho thấy pipeline xử lý bẫy phiên bản **không đồng đều**:
 
 - Đúng phiên bản: câu 41 trả 15 ngày (v2024, không lấy 12 ngày v2023), câu 43 trả 12 ký tự (v2.0),
@@ -124,6 +124,6 @@ câu adversarial cho thấy pipeline xử lý bẫy phiên bản **không đồn
   over-refusal khi có xung đột phiên bản. Chỉ các câu 41/43/49 cho thấy chọn đúng phiên bản.
 
 Giới hạn: chỉ 50 câu (adversarial 10 câu → mỗi câu đổi ±0.1 mean nhóm); evaluator gpt-4o-mini có
-dao động — hai lần chạy Phase A trên cùng answers lệch khoảng 0.01 mean mỗi nhóm và thứ tự vài câu
+dao động — các lần chạy Phase A trên cùng answers lệch tới khoảng 0.02 mean mỗi nhóm và thứ tự vài câu
 cuối bottom 10 thay đổi; generation và evaluator cùng họ gpt-4o-mini nên có thể chia sẻ thiên lệch.
 Không có extractive fallback trong lượt chạy này.

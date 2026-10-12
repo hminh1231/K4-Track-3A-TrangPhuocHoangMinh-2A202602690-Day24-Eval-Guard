@@ -6,7 +6,7 @@ Người phụ trách: Trang Phước Hoàng Minh — 2A202602690
 
 Đây là **đề xuất CI/CD**, không phải workflow đã được triển khai/chạy.
 Nguồn kết quả: artifacts/ragas_50q.json, judge_results.json, guard_results.json.
-Run timestamp: guard 2026-10-12T15:29:10Z (Phase A 15:33:27Z, Phase B 09:02:00Z); guard models: `gpt-4o-mini`.
+Run timestamp: guard 2026-10-12T15:41:50Z (Phase A 15:39:22Z, Phase B 15:39:56Z); guard models: `gpt-4o-mini`.
 Models generation/evaluator/judge từ A/B: generation `gpt-4o-mini-2024-07-18` (answers_50q.json);
 evaluator `gpt-4o-mini` + `text-embedding-3-small` (ragas_50q.json, do m4 khai báo); judge
 `gpt-4o-mini` (judge_results.json).
@@ -49,18 +49,19 @@ phương pháp: linear.
 
 | Layer / scope | P50 ms | P95 ms | P99 ms | Tình trạng |
 |---|---|---|---|---|
-| Presidio | 17.36 | 19.77 | 20.84 | Đo thật Task 12, nhanh và ổn định (11.9–21.1 ms) |
-| NeMo input | 686.87 | 817.77 | 997.93 | Đo thật Task 12, chiếm khoảng 98% thời gian (617.7–1043.0 ms) |
-| Input guard sequential | 703.21 | 835.61 | 1015.47 | Đo thật Task 12, vượt target 500 ms |
+| Presidio | 13.23 | 16.97 | 18.18 | Đo thật Task 12, nhanh và ổn định (11.6–18.5 ms) |
+| NeMo input | 673.30 | 824.27 | 2260.75 | Đo thật Task 12, chiếm khoảng 98% thời gian (593.4–2619.9 ms) |
+| Input guard sequential | 686.00 | 841.05 | 2275.88 | Đo thật Task 12, vượt target 500 ms |
 | RAG | chưa đo | chưa đo | chưa đo | Ngoài phạm vi bắt buộc |
 | NeMo output | chưa đo | chưa đo | chưa đo | Ngoài phạm vi bắt buộc |
 | Full guard / short-circuit request | chưa đo | chưa đo | chưa đo | Không suy từ input_guard_ms |
 
-Input-layer budget target: 500ms; kết quả thực tế/budget_ok: P95 835.61 ms, `latency_budget_ok = false`.
+Input-layer budget target: 500ms; kết quả thực tế/budget_ok: P95 841.05 ms, `latency_budget_ok = false`.
 
 Bottleneck là NeMo input rail: mỗi request là một lượt gọi API gpt-4o-mini qua mạng (self check
 input), nên latency do round-trip và hàng đợi của provider quyết định, không phải CPU local. Presidio
-chỉ khoảng 17 ms. Hướng giảm: (1) chạy Presidio và NeMo song song rồi kết hợp quyết định (latency ≈
+chỉ khoảng 13 ms. P99 2275.88 ms do một mẫu NeMo 2619.9 ms — đuôi latency của API bên ngoài,
+đúng loại rủi ro cần timeout + fail-closed. Hướng giảm: (1) chạy Presidio và NeMo song song rồi kết hợp quyết định (latency ≈
 max thay vì tổng); (2) giới hạn `max_tokens` của self-check về 1–3 token; (3) cache quyết định cho
 câu hỏi lặp lại; (4) thay self-check LLM bằng classifier local (ví dụ embedding + logistic) cho
 off-topic, chỉ gọi LLM với ca nghi ngờ; (5) đặt server gần region của provider. Mỗi thay đổi cần đo
@@ -79,9 +80,9 @@ input_guard_ms để kết luận full guard đạt hay không đạt 500 ms.
 
 Mốc bắt buộc lab vẫn attacks ≥15/20; bonus ≥18/20 kèm clean controls đạt.
 
-Đối chiếu với kết quả hiện tại: faithfulness tổng = (0.923×20 + 0.511×20 + 0.700×10)/50 = 0.714
-→ **không đạt** gate 0.75; avg_score tổng = 0.728 → đạt; attacks 20/20, clean 8/8, output 4/4 → đạt;
-input guard P95 835.61 ms → chỉ ghi nhận, chưa thành gate vì chưa đo full guard.
+Đối chiếu với kết quả hiện tại: faithfulness tổng = (0.923×20 + 0.465×20 + 0.700×10)/50 = 0.695
+→ **không đạt** gate 0.75; avg_score tổng = 0.724 → đạt; attacks 20/20, clean 8/8, output 4/4 → đạt;
+input guard P95 841.05 ms → chỉ ghi nhận, chưa thành gate vì chưa đo full guard.
 
 Pipeline đề xuất (chưa triển khai, chưa có file workflow trong repo):
 
@@ -115,18 +116,18 @@ Giới hạn bộ đo: 50 câu RAG, 20 attack, 8 câu sạch và 4 output là b�
 đủ traffic thật (ví dụ câu hỏi lương có nhắc tên người, câu hỏi tiếng Anh). Bộ 28 input đã được dùng
 để chỉnh prompt nên cần held-out set.
 
-RAGAS mean/worst distribution: factual 0.825, multi_hop 0.656 (yếu nhất), adversarial 0.678.
+RAGAS mean/worst distribution: factual 0.828, multi_hop 0.644 (yếu nhất), adversarial 0.673.
 Cohen’s κ: 1.0 (10/10 nhãn khớp human).
 Attacks passed: 20/20; clean false_positive_rate: 0.0.
 
 Cải tiến có thể kiểm tra:
 
 1. Đưa parent chunk (2048 ký tự) vào prompt thay cho 3 child chunk → đo lại context_recall và
-   avg_score multi_hop (mốc 0.796 và 0.656).
+   avg_score multi_hop (mốc 0.796 và 0.644).
 2. Sửa prompt generation để trả lời phần có bằng chứng và ưu tiên phiên bản hiện hành → đếm lại số
-   answer "Không tìm thấy" (mốc 7/50) và mean adversarial (mốc 0.678).
+   answer "Không tìm thấy" (mốc 7/50) và mean adversarial (mốc 0.673).
 3. Chạy song song Presidio và NeMo input, giới hạn token self-check → đo lại input guard P95 (mốc
-   835.61 ms) với cùng 2 warm-up + 20 mẫu.
+   841.05 ms) với cùng 2 warm-up + 20 mẫu.
 4. Viết held-out set 20 attack + 20 câu sạch mới, không dùng để chỉnh prompt → báo cáo pass rate và
    false positive riêng để kiểm tra overfit của prompt self-check.
-5. Thêm script gate đọc MIN_* và cho trả nonzero → xác nhận job fail khi faithfulness 0.714 < 0.75.
+5. Thêm script gate đọc MIN_* và cho trả nonzero → xác nhận job fail khi faithfulness 0.695 < 0.75.

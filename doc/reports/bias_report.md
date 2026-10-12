@@ -4,7 +4,7 @@ Nhóm: TrangPhuocHoangMinh (làm cá nhân)
 
 Người phụ trách: Trang Phước Hoàng Minh — 2A202602690
 
-Nguồn: `artifacts/judge_results.json`; run timestamp: 2026-10-12T09:02:00Z.
+Nguồn: `artifacts/judge_results.json`; run timestamp: 2026-10-12T15:39:56Z.
 Models generation/judge: generation `gpt-4o-mini-2024-07-18` (nguồn answer A); judge `gpt-4o-mini`
 (pairwise judge ở Task 5 và binary helper `judge_binary`, cả hai temperature 0, JSON mode).
 
@@ -21,9 +21,9 @@ quy về A/B gốc trước khi so sánh.
 |---|---|---|---|---|---|---|---|---|
 | 1 | Nghỉ 3 ngày làm việc khi kết hôn (48 ký tự) | Nghỉ 3 ngày làm việc **có lương** khi kết hôn (57) | B | B | B | true | 0.8 / 1.0 | 0.8 / 1.0 |
 | 5 | Cần Tổng Giám đốc (CEO) phê duyệt (34) | Cần Giám đốc phòng ban phê duyệt (33) | A | A | A | true | 1.0 / 0.0 | 1.0 / 0.0 |
-| 12 | Thưởng Tết tối thiểu cho NV chính thức từ 6 tháng là 1 tháng lương (89) | Thưởng Tết tối thiểu 1 tháng lương (50) | A | A | A | true | 1.0 / 0.6 | 1.0 / 0.8 |
-| 21 | 18 ngày phép; không tìm thấy thông tin lương (91) | 18 ngày phép; lương Senior 20–35 triệu (82) | B | B | B | true | 0.7 / 1.0 | 0.7 / 1.0 |
-| 41 | 15 ngày phép năm có lương (62) | 12 ngày phép năm (37) | A | A | A | true | 1.0 / 0.0 | 1.0 / 0.3 |
+| 12 | Thưởng Tết tối thiểu cho NV chính thức từ 6 tháng là 1 tháng lương (89) | Thưởng Tết tối thiểu 1 tháng lương (50) | A | A | A | true | 1.0 / 0.7 | 1.0 / 0.8 |
+| 21 | 18 ngày phép; không tìm thấy thông tin lương (91) | 18 ngày phép; lương Senior 20–35 triệu (82) | B | B | B | true | 0.8 / 1.0 | 0.7 / 1.0 |
+| 41 | 15 ngày phép năm có lương (62) | 12 ngày phép năm (37) | A | A | A | true | 1.0 / 0.0 | 1.0 / 0.4 |
 
 Reasoning chính: (1) B nêu thêm "có lương" khớp reference; (5) A đúng ngưỡng >50 triệu cần CEO, B sai
 cấp duyệt; (12) A nhắc lại điều kiện 6 tháng, B thiếu điều kiện — lượt 2 thì cho điểm B 0.8 vì cả hai
@@ -39,7 +39,7 @@ vượt ngưỡng cảnh báo 0.6, nhưng đọc nội dung thì answer dài th�
 cặp 1 phần dài hơn chính là ý "có lương" có trong reference; cặp 41 thắng do đúng phiên bản; cặp 5
 chênh 1 ký tự (34 vs 33), thắng do đúng cấp phê duyệt; cặp 21 là phản ví dụ — B ngắn hơn nhưng
 thắng vì có đủ thông tin lương. Cặp 12 là trường hợp đáng nghi nhất: cả hai cùng đúng "1 tháng
-lương", A chỉ lặp lại điều kiện của câu hỏi; lượt 2 thu hẹp khoảng cách (0.8 vs 0.6) cho thấy judge
+lương", A chỉ lặp lại điều kiện của câu hỏi; điểm B dao động giữa hai lượt (0.7 rồi 0.8) cho thấy judge
 dao động với cặp gần tương đương. Kết luận: chỉ số verbosity là dấu hiệu thống kê trên 5 cặp, nội
 dung không cho thấy judge ưu tiên độ dài một cách có hệ thống.
 
@@ -76,7 +76,7 @@ theo Landis-Koch, vượt mốc 0.6. Reasoning của judge trùng ý với human
   chứa đáp án tường minh; judge chưa được thử với câu đúng một phần hoặc diễn đạt mơ hồ.
 - Judge (gpt-4o-mini) cùng họ model với generation và evaluator, nên có thể cùng điểm mù; nên kiểm
   tra chéo bằng một model khác hoặc người đọc mẫu ngẫu nhiên.
-- Scores trong pairwise dao động giữa hai lượt (cặp 12: B 0.6 → 0.8; cặp 41: B 0.0 → 0.3) dù winner
+- Scores trong pairwise dao động giữa hai lượt (cặp 12: B 0.7 → 0.8; cặp 21: A 0.8 → 0.7; cặp 41: B 0.0 → 0.4) dù winner
   không đổi; chỉ dùng winner sau swap-and-average, không dùng scores một lượt làm thước đo tuyệt đối.
 - Cách dùng đề xuất: judge là bộ lọc tự động trong CI, kèm định kỳ lấy mẫu để người gán nhãn lại và
   tính lại κ; nếu κ < 0.6 thì dừng dùng judge làm gate cho tới khi sửa prompt.

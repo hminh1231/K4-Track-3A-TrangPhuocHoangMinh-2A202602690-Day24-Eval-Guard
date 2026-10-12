@@ -1,0 +1,2 @@
+# Report metadata stores SHA-256 of these inputs; keep identical bytes on every OS.
+*.json text eol=lf
