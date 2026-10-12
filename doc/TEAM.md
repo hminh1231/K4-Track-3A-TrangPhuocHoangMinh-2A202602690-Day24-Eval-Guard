@@ -36,6 +36,10 @@ Models/Qdrant/50 answers đã chuẩn bị: Qdrant `qdrant/qdrant:v1.9.7` qua Do
 - Điều đã học: RAGAS cho faithfulness 0 cả với câu từ chối nên phải đọc answer/contexts trước khi gán "hallucination"; winner A/B và nhãn tốt/xấu 0/1 là hai câu hỏi khác nhau; swap thứ tự để phát hiện position bias và chỉ số verbosity cần đọc nội dung mới kết luận; clean controls cần thiết vì guard luôn-chặn cũng đạt 20/20 attack; latency phải ghi đúng phạm vi đo (input layers, không phải full guard).
 - Giới hạn/cách xử lý: prompt self-check gốc cho qua câu off-topic; bản sửa đầu chặn nhầm câu sạch 106 — đã làm rõ phạm vi và quy tắc tài khoản, thử 2 lượt 28/28 trước khi chạy runner, và ghi rủi ro overfit trên chính bộ 28 câu vào blueprint. Latency vượt budget được báo cáo đúng số thật. Lần chạy Phase C đầu tưởng treo do Presidio tự tải model spaCy; tải xong thì chạy lại. Đổi bottom_10 sau lần chạy Phase A đầu nên chạy lại Phase A để artifact khớp code. Với `core.autocrlf=true` trên Windows, hash SHA-256 của input JSON (CRLF) khác bản trong repo (LF), nên đã thêm `.gitattributes` (`*.json text eol=lf`), checkout lại input và chạy lại cả ba phase để metadata khớp với bản người chấm checkout.
 - Nguồn hỗ trợ: mã m1–m5 từ bài Day 18 của chính mình. Mọi số liệu trong báo cáo lấy từ JSON do runner tạo trong lần chạy thật; đã đọc lại đối chiếu answer/contexts và chạy unit tests + checker để kiểm chứng.
+- AI hỗ trợ: dùng Claude Code (trợ lý lập trình của Anthropic) trong VS Code.
+  - Phạm vi: cài môi trường (MSVC, dependencies, Qdrant), viết code các Task 1–12 và adapter m2/m4/m5, debug NeMo input rail và chỉnh prompt self check input, phát hiện lỗi hash do CRLF/LF, soạn nháp ba báo cáo và TEAM.
+  - Không dùng AI để tạo số đo hay nhãn: mọi số liệu, nhãn judge và latency đều do runner `--live` sinh ra từ API thật; báo cáo chỉ trích lại từ `artifacts/*.json`.
+  - Cách kiểm chứng: chạy `python -m pytest tests/ -q` (86 passed), `python scripts/check_lab.py --with-tests` (0 failed checks), clone sạch repo từ GitHub và chạy lại checker; tự đọc answer/contexts của các câu bottom 10, các cặp judge và kết quả guard để xác nhận diễn giải trong báo cáo.
 
 ## Cập nhật sau khi nộp
 
